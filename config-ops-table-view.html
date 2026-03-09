@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Ops - Table View (Alternative Layout)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            background: white;
+            padding: 0 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 0;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            white-space: nowrap;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .nav-tab:hover {
+            color: #333;
+        }
+
+        .nav-tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        /* Layout Container */
+        .layout-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+
+        .sidebar-header h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-content {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .sidebar-stats {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .stat-mini {
+            text-align: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .stat-mini .label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-mini .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .sidebar-section {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-section-header {
+            padding: 0.75rem 1rem;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.813rem;
+            font-weight: 600;
+        }
+
+        .sidebar-section-header:hover {
+            background: #5a6fd8;
+        }
+
+        .sidebar-section-header .count {
+            background: rgba(255,255,255,0.2);
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .sidebar-section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .sidebar-section.expanded .sidebar-section-content {
+            max-height: 500px;
+        }
+
+        .sidebar-section.expanded .toggle-icon {
+            transform: rotate(90deg);
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .section-item {
+            padding: 0.5rem 1rem 0.5rem 2rem;
+            cursor: pointer;
+            font-size: 0.813rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-item:hover {
+            background: #f8f9fa;
+            border-left-color: #3498db;
+        }
+
+        .section-item:hover .section-edit-icon {
+            opacity: 1;
+        }
+
+        .section-item.active {
+            background: #e7f3ff;
+            border-left-color: #3498db;
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .section-item .section-info {
+            flex: 1;
+        }
+
+        .section-item .section-name {
+            display: block;
+            margin-bottom: 0.125rem;
+        }
+
+        .section-item .option-count {
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .section-edit-icon {
+            opacity: 0;
+            transition: opacity 0.2s;
+            padding: 0.25rem;
+            font-size: 0.813rem;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .search-group {
+            display: flex;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 300px;
+            max-width: 800px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.625rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.813rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .filter-select {
+            padding: 0.625rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            background: white;
+            min-width: 130px;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .view-toggle {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .view-toggle.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.625rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #229954;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-icon {
+            padding: 0.375rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        /* Table Container */
+        .table-wrapper {
+            flex: 1;
+            overflow: auto;
+            background: white;
+        }
+
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.813rem;
+        }
+
+        .config-table thead {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .config-table th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .config-table th:hover {
+            background: #eef0f2;
+        }
+
+        .config-table th .sort-icon {
+            margin-left: 0.25rem;
+            font-size: 0.75rem;
+            opacity: 0.5;
+        }
+
+        .config-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        .config-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .config-table tbody tr.selected {
+            background: #e7f3ff;
+        }
+
+        .config-table tbody tr.expandable {
+            cursor: pointer;
+        }
+
+        .config-table td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+        }
+
+        .config-table td.col-expand {
+            width: 30px;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+        }
+
+        .expand-icon {
+            transition: transform 0.2s;
+            display: inline-block;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .config-table tr.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+
+        /* Expanded Row Details */
+        .expanded-details {
+            display: none;
+            background: #f8f9fa;
+        }
+
+        .expanded-details.show {
+            display: table-row;
+        }
+
+        .expanded-details td {
+            padding: 1rem 1rem 1rem 3rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 0.875rem;
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-app {
+            background-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .badge-section {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-type {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .option-name {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        /* Action Buttons in Table */
+        .action-btns {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            padding: 1rem 1.5rem;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .pagination-info {
+            font-size: 0.813rem;
+            color: #666;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f8f9fa;
+            border-color: #3498db;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.813rem;
+            flex-shrink: 0;
+        }
+
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb .separator {
+            margin: 0 0.5rem;
+            color: #999;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+
+            .search-group {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* Selection Mode */
+        .selection-toolbar {
+            display: none;
+            background: #e7f3ff;
+            border-bottom: 1px solid #b3d9ff;
+            padding: 0.75rem 1.5rem;
+            align-items: center;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .selection-toolbar.active {
+            display: flex;
+        }
+
+        .selection-info {
+            flex: 1;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        /* Compact Mode */
+        body.compact-mode .config-table td,
+        body.compact-mode .config-table th {
+            padding: 0.5rem 0.75rem;
+        }
+
+        body.compact-mode .config-table {
+            font-size: 0.75rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #555;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 0.25rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-hint {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            background: #f8f9fa;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .app-ref-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .app-ref-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .app-ref-item .app-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.875rem;
+        }
+
+        .edit-icon {
+            cursor: pointer;
+            padding: 0.25rem;
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        .edit-icon:hover {
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>⚙️ Configuration Ops - Table View</h1>
+        <p>Manage shared configuration data grouped by application • Alternative compact layout for large datasets</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <div class="nav-tab active">📋 Config Options</div>
+        <div class="nav-tab">📱 Application Groups</div>
+        <div class="nav-tab">📁 Sections</div>
+        <div class="nav-tab">🏷️ Data Types</div>
+        <div class="nav-tab">🔗 Mappings</div>
+        <div class="nav-tab">👥 Roles</div>
+    </div>
+
+    <!-- Layout Container -->
+    <div class="layout-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Application Groups & Sections</h3>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="sidebar-stats">
+                <div class="stat-mini">
+                    <div class="label">Options</div>
+                    <div class="value">19</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="label">Sections</div>
+                    <div class="value">7</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="label">Groups</div>
+                    <div class="value">5</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="label">Types</div>
+                    <div class="value">6</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="padding: 1rem; border-bottom: 1px solid #e0e0e0; display: flex; flex-direction: column; gap: 0.5rem;">
+                <button class="btn btn-primary" style="width: 100%; font-size: 0.813rem; padding: 0.625rem;" onclick="openAppGroupModal('new')">
+                    ➕ New App Group
+                </button>
+                <button class="btn btn-success" style="width: 100%; font-size: 0.813rem; padding: 0.625rem;" onclick="openSectionModal('new')">
+                    ➕ New Section
+                </button>
+            </div>
+
+            <!-- Navigation Tree -->
+            <div class="sidebar-content">
+                <!-- Application 1 -->
+                <div class="sidebar-section expanded">
+                    <div class="sidebar-section-header" onclick="toggleSidebarSection(this)">
+                        <span><span class="toggle-icon">▶</span> 📱 Customer Portal</span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="edit-icon" onclick="event.stopPropagation(); openAppGroupModal('edit', 1);" title="Edit Application Group">✏️</span>
+                            <span class="count">8</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-section-content">
+                        <div class="section-item active" onclick="filterTable('all', 'all')">
+                            <div class="section-info">
+                                <span class="section-name">All Options</span>
+                                <span class="option-count">8 options</span>
+                            </div>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app1', 'sec1')">
+                            <div class="section-info">
+                                <span class="section-name">🌐 API Configuration</span>
+                                <span class="option-count">3 options</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 1);" title="Edit Section">✏️</span>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app1', 'sec2')">
+                            <div class="section-info">
+                                <span class="section-name">🔒 Security Settings</span>
+                                <span class="option-count">2 options</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 2);" title="Edit Section">✏️</span>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app1', 'sec3')">
+                            <div class="section-info">
+                                <span class="section-name">🚩 Feature Flags</span>
+                                <span class="option-count">3 options</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 3);" title="Edit Section">✏️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application 2 -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header" onclick="toggleSidebarSection(this)" style="background: #f093fb;">
+                        <span><span class="toggle-icon">▶</span> 📦 Order Management</span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="edit-icon" onclick="event.stopPropagation(); openAppGroupModal('edit', 2);" title="Edit Application Group">✏️</span>
+                            <span class="count">5</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-section-content">
+                        <div class="section-item" onclick="filterTable('app2', 'all')">
+                            <div class="section-info">
+                                <span class="section-name">All Options</span>
+                                <span class="option-count">5 options</span>
+                            </div>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app2', 'sec4')">
+                            <div class="section-info">
+                                <span class="section-name">💳 Payment Integration</span>
+                                <span class="option-count">3 options</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 4);" title="Edit Section">✏️</span>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app2', 'sec5')">
+                            <div class="section-info">
+                                <span class="section-name">⚙️ Order Processing</span>
+                                <span class="option-count">2 options</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 5);" title="Edit Section">✏️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application 3 -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header" onclick="toggleSidebarSection(this)" style="background: #ffd89b;">
+                        <span><span class="toggle-icon">▶</span> 📧 Notification Service</span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="edit-icon" onclick="event.stopPropagation(); openAppGroupModal('edit', 3);" title="Edit Application Group">✏️</span>
+                            <span class="count">3</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-section-content">
+                        <div class="section-item" onclick="filterTable('app3', 'all')">
+                            <div class="section-info">
+                                <span class="section-name">All Options</span>
+                                <span class="option-count">3 options</span>
+                            </div>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app3', 'sec6')">
+                            <div class="section-info">
+                                <span class="section-name">📧 Email Settings</span>
+                                <span class="option-count">3 options</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 6);" title="Edit Section">✏️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application 4 -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header" onclick="toggleSidebarSection(this)" style="background: #43e97b;">
+                        <span><span class="toggle-icon">▶</span> 🏢 Enterprise System</span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="edit-icon" onclick="event.stopPropagation(); openAppGroupModal('edit', 4);" title="Edit Application Group">✏️</span>
+                            <span class="count">1</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-section-content">
+                        <div class="section-item" onclick="filterTable('app4', 'all')">
+                            <div class="section-info">
+                                <span class="section-name">All Options</span>
+                                <span class="option-count">1 option</span>
+                            </div>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app4', 'sec7')">
+                            <div class="section-info">
+                                <span class="section-name">💾 Database Config</span>
+                                <span class="option-count">1 option</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 7);" title="Edit Section">✏️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application 5 -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header" onclick="toggleSidebarSection(this)" style="background: #fa709a;">
+                        <span><span class="toggle-icon">▶</span> 🌐 Global Platform</span>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="edit-icon" onclick="event.stopPropagation(); openAppGroupModal('edit', 5);" title="Edit Application Group">✏️</span>
+                            <span class="count">1</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-section-content">
+                        <div class="section-item" onclick="filterTable('app5', 'all')">
+                            <div class="section-info">
+                                <span class="section-name">All Options</span>
+                                <span class="option-count">1 option</span>
+                            </div>
+                        </div>
+                        <div class="section-item" onclick="filterTable('app5', 'sec8')">
+                            <div class="section-info">
+                                <span class="section-name">🔐 Authentication</span>
+                                <span class="option-count">1 option</span>
+                            </div>
+                            <span class="section-edit-icon edit-icon" onclick="event.stopPropagation(); openSectionModal('edit', 8);" title="Edit Section">✏️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="#">All Application Groups</a>
+                <span class="separator">›</span>
+                <span>All Options (19)</span>
+            </div>
+
+            <!-- Selection Toolbar (hidden by default) -->
+            <div class="selection-toolbar" id="selectionToolbar">
+                <div class="selection-info">
+                    <span id="selectedCount">0</span> items selected
+                </div>
+                <button class="btn btn-primary btn-icon">✏️ Bulk Edit</button>
+                <button class="btn btn-danger btn-icon">🗑️ Delete Selected</button>
+                <button class="btn btn-icon" onclick="clearSelection()" style="background: #95a5a6; color: white;">✕ Clear</button>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-group">
+                    <input type="text" class="search-input" placeholder="Search by name, option, value, or description...">
+                    <select class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <select class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="text">Text</option>
+                        <option value="integer">Integer</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="decimal">Decimal</option>
+                        <option value="datetime">DateTime</option>
+                        <option value="secret">Secret</option>
+                    </select>
+                </div>
+                <div class="view-controls">
+                    <button class="view-toggle" onclick="toggleCompactMode()" title="Compact View">
+                        ⚡ Compact
+                    </button>
+                    <button class="view-toggle" onclick="expandAll()" title="Expand All">
+                        ⬇️ Expand
+                    </button>
+                    <button class="view-toggle" onclick="collapseAll()" title="Collapse All">
+                        ⬆️ Collapse
+                    </button>
+                </div>
+                <button class="btn btn-primary" onclick="openOptionModal('new')">➕ New Option</button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <table class="config-table">
+                    <thead>
+                        <tr>
+                            <th class="col-expand">
+                                <input type="checkbox" onclick="toggleSelectAll(this)">
+                            </th>
+                            <th class="col-expand"></th>
+                            <th onclick="sortTable('name')">Name <span class="sort-icon">⬍</span></th>
+                            <th onclick="sortTable('option')">Option Name <span class="sort-icon">⬍</span></th>
+                            <th onclick="sortTable('value')">Value <span class="sort-icon">⬍</span></th>
+                            <th onclick="sortTable('type')">Type <span class="sort-icon">⬍</span></th>
+                            <th onclick="sortTable('app')">App Group <span class="sort-icon">⬍</span></th>
+                            <th onclick="sortTable('section')">Section <span class="sort-icon">⬍</span></th>
+                            <th onclick="sortTable('status')">Status <span class="sort-icon">⬍</span></th>
+                            <th onclick="sortTable('updated')">Updated <span class="sort-icon">⬍</span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Row 1 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>API Endpoint URL</strong></td>
+                            <td><span class="option-name">API_ENDPOINT_URL</span></td>
+                            <td>https://api.example.com/v1</td>
+                            <td><span class="badge badge-type">Text</span></td>
+                            <td>
+                                <span class="badge badge-app">Customer Portal</span>
+                                <span style="font-size: 0.75rem; color: #666; margin-left: 0.25rem;">(2 apps)</span>
+                            </td>
+                            <td><span class="badge badge-section">API Configuration</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-03-05</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation(); openOptionModal('edit', 1);" title="Edit">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();" title="Delete">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">The base URL for the external API service endpoint</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">John Doe</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-03-05 14:30</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps (2)</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 2 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>API Timeout</strong></td>
+                            <td><span class="option-name">API_TIMEOUT_SECONDS</span></td>
+                            <td>30</td>
+                            <td><span class="badge badge-type">Integer</span></td>
+                            <td>
+                                <span class="badge badge-app">Customer Portal</span>
+                                <span style="font-size: 0.75rem; color: #666; margin-left: 0.25rem;">(2 apps)</span>
+                            </td>
+                            <td><span class="badge badge-section">API Configuration</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-03-04</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Timeout in seconds for API requests before failing</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">Jane Smith</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-03-04 11:15</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps (2)</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 3 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>Maximum Retry Count</strong></td>
+                            <td><span class="option-name">MAX_RETRY_COUNT</span></td>
+                            <td>3</td>
+                            <td><span class="badge badge-type">Integer</span></td>
+                            <td><span class="badge badge-app">Customer Portal</span></td>
+                            <td><span class="badge badge-section">API Configuration</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-03-03</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Number of times to retry a failed API call</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">DevOps Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-03-03 09:45</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 4 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>Session Timeout</strong></td>
+                            <td><span class="option-name">SESSION_TIMEOUT_MINUTES</span></td>
+                            <td>60</td>
+                            <td><span class="badge badge-type">Integer</span></td>
+                            <td><span class="badge badge-app">Customer Portal</span></td>
+                            <td><span class="badge badge-section">Security Settings</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-03-01</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Number of minutes before user session expires</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">Security Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-03-01 08:30</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 5 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>Enable Social Login</strong></td>
+                            <td><span class="option-name">ENABLE_SOCIAL_LOGIN</span></td>
+                            <td>true</td>
+                            <td><span class="badge badge-type">Boolean</span></td>
+                            <td><span class="badge badge-app">Customer Portal</span></td>
+                            <td><span class="badge badge-section">Security Settings</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-02-25</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Allow users to login via social media accounts</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">Product Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-02-25 14:00</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 6 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>Enable New Dashboard</strong></td>
+                            <td><span class="option-name">FEATURE_NEW_DASHBOARD</span></td>
+                            <td>false</td>
+                            <td><span class="badge badge-type">Boolean</span></td>
+                            <td><span class="badge badge-app">Customer Portal</span></td>
+                            <td><span class="badge badge-section">Feature Flags</span></td>
+                            <td><span class="badge badge-inactive">Inactive</span></td>
+                            <td>2026-02-20</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Toggle the new dashboard redesign feature</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">Product Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-02-20 12:00</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 7 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>Dark Mode</strong></td>
+                            <td><span class="option-name">FEATURE_DARK_MODE</span></td>
+                            <td>true</td>
+                            <td><span class="badge badge-type">Boolean</span></td>
+                            <td><span class="badge badge-app">Customer Portal</span></td>
+                            <td><span class="badge badge-section">Feature Flags</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-02-18</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Enable dark mode theme option for users</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">UX Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-02-18 09:30</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 8 -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>Payment Gateway Key</strong></td>
+                            <td><span class="option-name">PAYMENT_GATEWAY_KEY</span></td>
+                            <td>pk_live_***************</td>
+                            <td><span class="badge badge-type">Secret</span></td>
+                            <td><span class="badge badge-app" style="background: #f093fb;">Order Management</span></td>
+                            <td><span class="badge badge-section">Payment Integration</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-02-28</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">API key for payment gateway integration</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">Finance Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-02-28 13:10</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps (3)</span>
+                                        <span class="detail-value" style="font-family: inherit;">OrderManagement_Core, OrderManagement_Admin, Fulfillment_Service</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 9 - Scenario: 6 OutSystems Apps -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>Database Connection String</strong></td>
+                            <td><span class="option-name">DB_CONNECTION_STRING</span></td>
+                            <td>Server=sql.example.com;Database=***</td>
+                            <td><span class="badge badge-type">Secret</span></td>
+                            <td>
+                                <span class="badge badge-app" style="background: #43e97b;">Enterprise System</span>
+                                <span style="font-size: 0.75rem; color: #666; margin-left: 0.25rem;">(6 apps)</span>
+                            </td>
+                            <td><span class="badge badge-section">Database Config</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-03-01</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Central database connection string used across all enterprise applications</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">DBA Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-03-01 16:45</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">OutSystems Apps (6)</span>
+                                        <span class="detail-value" style="font-family: inherit;">EnterpriseCore_Web, EnterpriseCore_Mobile, HRManagement_App, FinanceReporting_App, AssetManagement_App, InventoryTracking_App</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Row 10 - Scenario: 12 OutSystems Apps (Many!) -->
+                        <tr class="expandable" onclick="toggleRow(this)">
+                            <td class="col-expand">
+                                <input type="checkbox" onclick="event.stopPropagation(); updateSelection()">
+                            </td>
+                            <td class="col-expand">
+                                <span class="expand-icon">▶</span>
+                            </td>
+                            <td><strong>SSO Configuration URL</strong></td>
+                            <td><span class="option-name">SSO_CONFIG_URL</span></td>
+                            <td>https://sso.example.com/auth</td>
+                            <td><span class="badge badge-type">Text</span></td>
+                            <td>
+                                <span class="badge badge-app" style="background: #fa709a;">Global Platform</span>
+                                <span style="font-size: 0.75rem; color: #666; margin-left: 0.25rem;">(12 apps)</span>
+                            </td>
+                            <td><span class="badge badge-section">Authentication</span></td>
+                            <td><span class="badge badge-active">Active</span></td>
+                            <td>2026-02-15</td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary btn-icon" onclick="event.stopPropagation();">✏️</button>
+                                    <button class="btn btn-danger btn-icon" onclick="event.stopPropagation();">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="expanded-details">
+                            <td colspan="11">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Description</span>
+                                        <span class="detail-value" style="font-family: inherit;">Single Sign-On configuration endpoint shared across all platform applications</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated By</span>
+                                        <span class="detail-value">Platform Team</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Updated Date</span>
+                                        <span class="detail-value">2026-02-15 10:30</span>
+                                    </div>
+                                    <div class="detail-item" style="grid-column: 1 / -1;">
+                                        <span class="detail-label">OutSystems Apps (12)</span>
+                                        <span class="detail-value" style="font-family: inherit;">CustomerPortal_Web, CustomerPortal_Mobile, PartnerPortal_Web, EmployeePortal_Web, AdminConsole_Web, ReportingDashboard_Web, MobileFieldService_App, SupplierPortal_Web, VendorManagement_App, ComplianceTracking_App, AuditManagement_App, DataAnalytics_Web</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info">
+                    Showing <strong>1-10</strong> of <strong>19</strong> options
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" disabled>‹ Previous</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">Next ›</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Edit Application Group -->
+    <div class="modal" id="appGroupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="appGroupModalTitle">Edit Application Group</h3>
+                <button class="close-btn" onclick="closeModal('appGroupModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="appGroupForm">
+                    <div class="form-group">
+                        <label for="appGroupName">Application Group Name <span class="required">*</span></label>
+                        <input type="text" id="appGroupName" class="form-control" placeholder="e.g., Customer Portal" required>
+                        <span class="form-hint">Logical grouping name for related OutSystems applications</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="appGroupDescription">Description</label>
+                        <textarea id="appGroupDescription" class="form-control" placeholder="Brief description of this application group"></textarea>
+                        <span class="form-hint">Explain the purpose and scope of this application group</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="appGroupIcon">Icon Emoji</label>
+                            <input type="text" id="appGroupIcon" class="form-control" placeholder="e.g., 📱" maxlength="2">
+                            <span class="form-hint">Optional emoji icon for visual identification</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appGroupColor">Color Theme</label>
+                            <select id="appGroupColor" class="form-control">
+                                <option value="purple">Purple</option>
+                                <option value="pink">Pink</option>
+                                <option value="orange">Orange</option>
+                                <option value="green">Green</option>
+                                <option value="blue">Blue</option>
+                                <option value="red">Red</option>
+                            </select>
+                            <span class="form-hint">Header color for this group</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>OutSystems Applications <span style="font-weight: normal; color: #666;">(manage linked apps)</span></label>
+                        <div class="app-ref-list">
+                            <div class="app-ref-item">
+                                <div>
+                                    <div class="app-name">CustomerPortal_Web</div>
+                                    <div style="font-size: 0.75rem; color: #666;">GUID: 7a3d4f2e-9b1c-4e5a-8d6f-1a2b3c4d5e6f</div>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-icon">🗑️</button>
+                            </div>
+                            <div class="app-ref-item">
+                                <div>
+                                    <div class="app-name">CustomerPortal_Mobile</div>
+                                    <div style="font-size: 0.75rem; color: #666;">GUID: 8b4e5f3g-0c2d-5f6b-9e7g-2b3c4d5e6f7g</div>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-icon">🗑️</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" style="margin-top: 0.75rem; width: 100%;" onclick="addOSApplication()">
+                            ➕ Add OutSystems Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: #95a5a6; color: white;" onclick="closeModal('appGroupModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveAppGroup()">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Section -->
+    <div class="modal" id="sectionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="sectionModalTitle">Edit Section</h3>
+                <button class="close-btn" onclick="closeModal('sectionModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="sectionForm">
+                    <div class="form-group">
+                        <label for="sectionAppGroup">Application Group <span class="required">*</span></label>
+                        <select id="sectionAppGroup" class="form-control" required>
+                            <option value="">Select an application group...</option>
+                            <option value="1" selected>📱 Customer Portal</option>
+                            <option value="2">📦 Order Management</option>
+                            <option value="3">📧 Notification Service</option>
+                            <option value="4">🏢 Enterprise System</option>
+                            <option value="5">🌐 Global Platform</option>
+                        </select>
+                        <span class="form-hint">Which application group does this section belong to?</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sectionName">Section Name <span class="required">*</span></label>
+                        <input type="text" id="sectionName" class="form-control" placeholder="e.g., API Configuration" required>
+                        <span class="form-hint">Descriptive name for this configuration section</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sectionDescription">Description</label>
+                        <textarea id="sectionDescription" class="form-control" placeholder="Brief description of this section"></textarea>
+                        <span class="form-hint">Explain what type of configurations are in this section</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sectionIcon">Icon Emoji</label>
+                            <input type="text" id="sectionIcon" class="form-control" placeholder="e.g., 🌐" maxlength="2">
+                            <span class="form-hint">Optional emoji icon</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sectionOrder">Display Order</label>
+                            <input type="number" id="sectionOrder" class="form-control" placeholder="1" min="1">
+                            <span class="form-hint">Sort order (1 = first)</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: #95a5a6; color: white;" onclick="closeModal('sectionModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveSection()">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Config Option -->
+    <div class="modal" id="optionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="optionModalTitle">Edit Configuration Option</h3>
+                <button class="close-btn" onclick="closeModal('optionModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="optionForm">
+                    <div class="form-group">
+                        <label for="optionAppGroup">Application Group <span class="required">*</span></label>
+                        <select id="optionAppGroup" class="form-control" required onchange="updateSectionsForAppGroup()">
+                            <option value="">Select an application group...</option>
+                            <option value="1">📱 Customer Portal</option>
+                            <option value="2">📦 Order Management</option>
+                            <option value="3">📧 Notification Service</option>
+                            <option value="4">🏢 Enterprise System</option>
+                            <option value="5">🌐 Global Platform</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="optionSection">Section <span class="required">*</span></label>
+                        <select id="optionSection" class="form-control" required>
+                            <option value="">Select a section...</option>
+                        </select>
+                        <span class="form-hint">Which section should this option appear under?</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="optionFriendlyName">Friendly Name <span class="required">*</span></label>
+                        <input type="text" id="optionFriendlyName" class="form-control" placeholder="e.g., API Endpoint URL" required>
+                        <span class="form-hint">Human-readable name displayed in the UI</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="optionName">Option Name <span class="required">*</span></label>
+                        <input type="text" id="optionName" class="form-control" placeholder="e.g., API_ENDPOINT_URL" required style="font-family: 'Courier New', monospace;">
+                        <span class="form-hint">Technical identifier (uppercase with underscores)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="optionDescription">Description</label>
+                        <textarea id="optionDescription" class="form-control" placeholder="Brief description of this configuration option"></textarea>
+                        <span class="form-hint">Explain what this option controls and when to use it</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="optionDataType">Data Type <span class="required">*</span></label>
+                            <select id="optionDataType" class="form-control" required>
+                                <option value="">Select type...</option>
+                                <option value="text">Text</option>
+                                <option value="integer">Integer</option>
+                                <option value="decimal">Decimal</option>
+                                <option value="boolean">Boolean</option>
+                                <option value="datetime">DateTime</option>
+                                <option value="secret">Secret</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="optionStatus">Status <span class="required">*</span></label>
+                            <select id="optionStatus" class="form-control" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="optionValue">Current Value <span class="required">*</span></label>
+                        <textarea id="optionValue" class="form-control" placeholder="Enter configuration value" rows="3" required style="font-family: 'Courier New', monospace;"></textarea>
+                        <span class="form-hint">The current value for this configuration option</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="optionDefaultValue">Default Value</label>
+                        <input type="text" id="optionDefaultValue" class="form-control" placeholder="Optional default value" style="font-family: 'Courier New', monospace;">
+                        <span class="form-hint">Default value that will be used if not explicitly set</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: #95a5a6; color: white;" onclick="closeModal('optionModal')">Cancel</button>
+                <button class="btn btn-success" onclick="saveOption()">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle row expansion
+        function toggleRow(row) {
+            const detailsRow = row.nextElementSibling;
+            row.classList.toggle('expanded');
+            detailsRow.classList.toggle('show');
+        }
+
+        // Expand all rows
+        function expandAll() {
+            document.querySelectorAll('.expandable').forEach(row => {
+                row.classList.add('expanded');
+                row.nextElementSibling.classList.add('show');
+            });
+        }
+
+        // Collapse all rows
+        function collapseAll() {
+            document.querySelectorAll('.expandable').forEach(row => {
+                row.classList.remove('expanded');
+                row.nextElementSibling.classList.remove('show');
+            });
+        }
+
+        // Toggle compact mode
+        function toggleCompactMode() {
+            document.body.classList.toggle('compact-mode');
+        }
+
+        // Toggle sidebar section
+        function toggleSidebarSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('expanded');
+        }
+
+        // Filter table
+        function filterTable(app, section) {
+            // Update active state
+            document.querySelectorAll('.section-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.section-item').classList.add('active');
+            
+            // Filter logic would go here
+            console.log('Filter by:', app, section);
+        }
+
+        // Sort table
+        function sortTable(column) {
+            console.log('Sort by:', column);
+            // Sorting logic would go here
+        }
+
+        // Selection
+        function toggleSelectAll(checkbox) {
+            document.querySelectorAll('.config-table tbody input[type="checkbox"]').forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateSelection();
+        }
+
+        function updateSelection() {
+            const checked = document.querySelectorAll('.config-table tbody input[type="checkbox"]:checked').length;
+            document.getElementById('selectedCount').textContent = checked;
+            document.getElementById('selectionToolbar').classList.toggle('active', checked > 0);
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.config-table tbody input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            updateSelection();
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Application Group Modal
+        function openAppGroupModal(mode, appGroupId) {
+            const modal = document.getElementById('appGroupModal');
+            const title = document.getElementById('appGroupModalTitle');
+            
+            if (mode === 'new') {
+                title.textContent = '➕ New Application Group';
+                // Clear form
+                document.getElementById('appGroupName').value = '';
+                document.getElementById('appGroupDescription').value = '';
+                document.getElementById('appGroupIcon').value = '';
+                document.getElementById('appGroupColor').value = 'purple';
+            } else {
+                title.textContent = '✏️ Edit Application Group';
+                // Load data for appGroupId
+                // This would fetch from backend in real implementation
+                document.getElementById('appGroupName').value = 'Customer Portal';
+                document.getElementById('appGroupDescription').value = 'Client-facing web portal application';
+                document.getElementById('appGroupIcon').value = '📱';
+                document.getElementById('appGroupColor').value = 'purple';
+            }
+            
+            openModal('appGroupModal');
+        }
+
+        function saveAppGroup() {
+            const name = document.getElementById('appGroupName').value;
+            const description = document.getElementById('appGroupDescription').value;
+            const icon = document.getElementById('appGroupIcon').value;
+            const color = document.getElementById('appGroupColor').value;
+            
+            if (!name) {
+                alert('Please enter an application group name');
+                return;
+            }
+            
+            console.log('Saving app group:', { name, description, icon, color });
+            // Backend API call would go here
+            
+            closeModal('appGroupModal');
+            alert('Application group saved successfully!');
+        }
+
+        function addOSApplication() {
+            const appName = prompt('Enter OutSystems Application Name:');
+            if (appName) {
+                const appGuid = prompt('Enter Application GUID (optional):');
+                console.log('Adding OS app:', { appName, appGuid });
+                // Backend API call would go here
+                alert('OutSystems application added successfully!');
+            }
+        }
+
+        // Section Modal
+        function openSectionModal(mode, sectionId) {
+            const modal = document.getElementById('sectionModal');
+            const title = document.getElementById('sectionModalTitle');
+            
+            if (mode === 'new') {
+                title.textContent = '➕ New Section';
+                // Clear form
+                document.getElementById('sectionAppGroup').value = '';
+                document.getElementById('sectionName').value = '';
+                document.getElementById('sectionDescription').value = '';
+                document.getElementById('sectionIcon').value = '';
+                document.getElementById('sectionOrder').value = '';
+            } else {
+                title.textContent = '✏️ Edit Section';
+                // Load data for sectionId
+                document.getElementById('sectionAppGroup').value = '1';
+                document.getElementById('sectionName').value = 'API Configuration';
+                document.getElementById('sectionDescription').value = 'API and integration settings';
+                document.getElementById('sectionIcon').value = '🌐';
+                document.getElementById('sectionOrder').value = '1';
+            }
+            
+            openModal('sectionModal');
+        }
+
+        function saveSection() {
+            const appGroup = document.getElementById('sectionAppGroup').value;
+            const name = document.getElementById('sectionName').value;
+            const description = document.getElementById('sectionDescription').value;
+            const icon = document.getElementById('sectionIcon').value;
+            const order = document.getElementById('sectionOrder').value;
+            
+            if (!appGroup || !name) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            console.log('Saving section:', { appGroup, name, description, icon, order });
+            // Backend API call would go here
+            
+            closeModal('sectionModal');
+            alert('Section saved successfully!');
+        }
+
+        // Config Option Modal
+        function openOptionModal(mode, optionId) {
+            const modal = document.getElementById('optionModal');
+            const title = document.getElementById('optionModalTitle');
+            
+            if (mode === 'new') {
+                title.textContent = '➕ New Configuration Option';
+                // Clear form
+                document.getElementById('optionAppGroup').value = '';
+                document.getElementById('optionSection').value = '';
+                document.getElementById('optionFriendlyName').value = '';
+                document.getElementById('optionName').value = '';
+                document.getElementById('optionDescription').value = '';
+                document.getElementById('optionDataType').value = '';
+                document.getElementById('optionStatus').value = 'active';
+                document.getElementById('optionValue').value = '';
+                document.getElementById('optionDefaultValue').value = '';
+            } else {
+                title.textContent = '✏️ Edit Configuration Option';
+                // Load data for optionId
+                document.getElementById('optionAppGroup').value = '1';
+                updateSectionsForAppGroup();
+                document.getElementById('optionSection').value = '1';
+                document.getElementById('optionFriendlyName').value = 'API Endpoint URL';
+                document.getElementById('optionName').value = 'API_ENDPOINT_URL';
+                document.getElementById('optionDescription').value = 'The base URL for the external API service endpoint';
+                document.getElementById('optionDataType').value = 'text';
+                document.getElementById('optionStatus').value = 'active';
+                document.getElementById('optionValue').value = 'https://api.example.com/v1';
+                document.getElementById('optionDefaultValue').value = '';
+            }
+            
+            openModal('optionModal');
+        }
+
+        function updateSectionsForAppGroup() {
+            const appGroupId = document.getElementById('optionAppGroup').value;
+            const sectionSelect = document.getElementById('optionSection');
+            
+            // Clear current options
+            sectionSelect.innerHTML = '<option value="">Select a section...</option>';
+            
+            // Add sections based on app group (mock data)
+            const sections = {
+                '1': [
+                    { id: '1', name: '🌐 API Configuration' },
+                    { id: '2', name: '🔒 Security Settings' },
+                    { id: '3', name: '🚩 Feature Flags' }
+                ],
+                '2': [
+                    { id: '4', name: '💳 Payment Integration' },
+                    { id: '5', name: '⚙️ Order Processing' }
+                ],
+                '3': [
+                    { id: '6', name: '📧 Email Settings' }
+                ],
+                '4': [
+                    { id: '7', name: '💾 Database Config' }
+                ],
+                '5': [
+                    { id: '8', name: '🔐 Authentication' }
+                ]
+            };
+            
+            if (sections[appGroupId]) {
+                sections[appGroupId].forEach(section => {
+                    const option = document.createElement('option');
+                    option.value = section.id;
+                    option.textContent = section.name;
+                    sectionSelect.appendChild(option);
+                });
+            }
+        }
+
+        function saveOption() {
+            const appGroup = document.getElementById('optionAppGroup').value;
+            const section = document.getElementById('optionSection').value;
+            const friendlyName = document.getElementById('optionFriendlyName').value;
+            const optionName = document.getElementById('optionName').value;
+            const description = document.getElementById('optionDescription').value;
+            const dataType = document.getElementById('optionDataType').value;
+            const status = document.getElementById('optionStatus').value;
+            const value = document.getElementById('optionValue').value;
+            const defaultValue = document.getElementById('optionDefaultValue').value;
+            
+            if (!appGroup || !section || !friendlyName || !optionName || !dataType || !value) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            console.log('Saving option:', {
+                appGroup, section, friendlyName, optionName, 
+                description, dataType, status, value, defaultValue
+            });
+            // Backend API call would go here
+            
+            closeModal('optionModal');
+            alert('Configuration option saved successfully!');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
